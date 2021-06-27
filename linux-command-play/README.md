@@ -11,6 +11,7 @@ ctrl+w #删除光标前一个单词
 ctrl+y #粘贴
 ctrl+d #退出当前shell
 ctrl+z #暂停任务 bg fg可以恢复
+ctrl+c #终止前台进程
 ctrl+r #搜索历史命令
 ```
 
@@ -27,7 +28,13 @@ sync #将内存数据同步到磁盘 关机前都要执行这个命令
 last #查看关机和启动的日志
 ```
 
-​    
+其它
+
+```bash
+ctrl+x+e #如果需要在命令行输入多行命令可以通过此快捷键召唤vim输入命令 然后保存就出现在命令行上了
+```
+
+​        
 
 ## 文件和目录
 
@@ -113,7 +120,7 @@ rm -r #递归删除
 rmdir -p A/AA/AAA  #递归删除 如果父子目录都为空
 ```
 
-### ln
+### *ln
 
 建立软硬链接
 
@@ -122,7 +129,7 @@ ln target newfile #建立硬连接 目录不可以建立硬连接
 ln -s target newfile #建立软连接 目录可以建立软连接
 ```
 
-### find
+### *find
 
 `-atime`: 访问时间
 
@@ -224,7 +231,7 @@ find . -name "a" | xargs -i  mv -t dir/ #mv -t表示反转
 mv `find . -name "c"` ./B #反引号表示解析命令结果
 ```
 
-### xargs
+### *xargs
 
 ```bash
 cat a | xargs #表示合并为一行 这里没有接命令 所以会输出到屏幕上
@@ -262,12 +269,12 @@ file *
 生成文件的md5值，可以用于校验备份文件是否损坏
 
 ```bash
-md5sum fil
-e #计算文件的md5值
-md5sum -c #检查是否改变
+md5sum file #计算文件的md5值
+md5sum file > md5sumVal
+md5sum -c md5sumVal #检查md5值和现在文件的md5值是否一样 也就是文件是否改变
 ```
 
-### chown
+### *chown
 
 更改文件所属的用户或则用户组
 
@@ -278,7 +285,7 @@ chown 用户:组 a.txt
 chown -R #递归更改
 ```
 
-### chmod
+### *chmod
 
 更改文件的读写权限
 
@@ -312,7 +319,7 @@ umask 003 #修改掩码
 
 ## 文件过滤和内容编辑
 
-### cat
+### *cat
 
 使用`cat`实现文件编辑 (注意这个在`zsh`中无效)
 
@@ -342,15 +349,13 @@ cat a.txt | grep -v "^$" #过滤掉所有空行
 
 ### less
 
-TODO
-
-### head、tail
+### *head、tail
 
 ```bash
 head -2 a.txt #只输出前2行 -n 2 同理
 head -c 10 a.txt #只输出指定字节
 #tail同理 只列出一些特殊操作
-tail -f a.txt #实时监控文件追加的数据
+tail -f a.txt #-f实时监控文件追加的数据
 tail -f -s 10 a.txt #-s表示监控间隔为10s
 ```
 
@@ -359,13 +364,13 @@ tail -f -s 10 a.txt #-s表示监控间隔为10s
 分割文本
 
 ```bash
-cat a | cut -d ' ' -f 1 #以空格为单位 并取第一列
-cat a | cut -d ' ' -f 1,4 #以空格为单位 并取第一列
-cat a | cut -b 1 #去第一列字节
-cat a | cut -b 1,4 #取1 4两列
-cat a | cut -b 1-4 #[1,4) 取范围
-cat a | cut -b 1-6,7-10 #[1,6) [7,10) 多个范围合并的列
-cat a | cur -c 1 #取第一列字符
+cut -d ' ' -f 1 #以空格为单位 并取第一列
+cut -d ' ' -f 1,4 #以空格为单位 并取第1,4两列
+cut -b 1 #取第1字节列
+cut -b 1,4 #取1,4字节列
+cut -b 1-4 #[1,4] 取范围
+cut -b -4 #[1,4] 取范围
+cut -b 1-6,7-10 #[1,6) [7,10) 多个范围合并的列
 ```
 
 ### split
@@ -380,22 +385,647 @@ split -b 500K a new_ #按照大小进行分割
 ### paste
 
 ```bash
-paste a b #合并 输出到屏幕
+paste a b #横向合并 输出到屏幕
 paste a b -d : #以:为分隔符
 paste a b -s #每个文件分别占用一行
 ```
 
-### sort
+### *sort
+
+```bash
+sort -n #按数字排序 而不是ascii
+sort -r #倒序 (默认升序)
+sort -u #去除重复的行
+sort -t ',' -k2 #指定分割符号和按哪一列排序
+```
+
+### join
+
+合并两个已经排序了的文件
+
+### *uniq
+
+去除重复的行，前提是重复的行都是连续的，所以一般此命令需要和`sort`配合使用
+
+```bash
+uniq -c #去除重复的行同时在每行开头记录重复的次数
+uniq -d #只显示重复的行
+uniq -u #只显示不重复的行
+```
+
+### *wc
+
+统计行数、单词数、字节数
+
+```bash
+wc -l #行数
+wc -c #字节数量 空格也算
+wc -w #统计单词数
+```
+
+### iconv
+
+转化文件的编码方式
+
+```bash
+iconv -l #列出系统支持的编码
+iconv -f <原文件编码> -t <目标编码> abc.txt #将文件转化编码
+```
+
+### diff
+
+比较两个文件的不同
+
+```bash
+diff -y a b #以并列显示两个文件的区别
+diff -c a b #另一种方式显示不同
+```
+
+### vimdiff
+
+可视化工具显示两个文件的不同
+
+### rev
+
+反向输出
+
+```bash
+echo 'abcdefg' | rev
+```
+
+### tr
+
+替换、删除文本
+
+```bash
+tr '[a-z]' '[A-Z]' < a.txt #重定向是规定写法 这里的意思是小写全部转化为大写 输出到标准输出
+tr '[0-9]' '[a-z]' <a.txt
+tr -d 'hello' < a.txt #删除每个hello单词 同时还会删除文本里面含有hello中任意一个字符
+tr -d '\n\t' <a.txt #删除换行、制表符
+```
+
+### od
+
+输出八进制、十六进制、十进制等格式
+
+```bash
+od -t x a.txt #按16进制格式打印
+```
+
+### *tee
+
+多重定向
+
+```bash
+ ls |tee a.txt # ls > a效果一样
+ ls | tee -a a.txt #追加
+```
+
+​    
+
+## 文本处理三剑客
+
+### *grep
+
+```bash
+grep -v "abc"  #-v 表示不包含 反向搜索
+grep -n "abc" #显示所在的行号
+grep -i #不区分大小写
+grep -c #只显示匹配行数 !不是匹配的个数
+grep -o #只输出匹配内容
+grep -w #只匹配完整的单词 默认是匹配所有只要包含了的
+grep -vE "^$|#" #-E表示使用egrep支持各种扩展 这里的意思是过滤掉空行或则带#的行
+```
+
+### sed
+
+流编辑器，文本过滤、增删查改
+
+```bash
+sed "1a 你好世界" a.txt #在第1行后面追加一行“你好世界” a表示append
+sed "2i 你好世界" a.txt #在第2行前面插入一行 i表示insert
+sed "1d" a.txt #删除第1行 d表示删除
+sed "1,3d" a.txt #删除[1,3]行
+sed -n "1,3p" a #只显示[1,3]行
+
+sed "s/hello/hi/g" a #将hello全部替换为hi  g表示全局 s表示替换 /是分隔符,用#也可
+```
+
+### awk
+
+文本格式化输出的一个工具
+
+```bash
+awk 'NR==2' a.txt #显示第2行
+awk 'NR==1,NR==3' a.txt #显示 [1,3]行
+awk '{print NR,$0}' a.txt #显示行号以及内容 中间必须使用逗号
+awk 'NR==2,NR==3  {print NR,$0}' a.txt
+#-F指定分隔符 NF表示最后一列下标 显示第1,3,以及最后一列
+awk -F ':' '{print NF,$1,$3,$NF}' a.txt
+```
+
+​      
+
+## Linux信息显示和搜索文件
+
+### *uname
+
+显示系统相关的参数信息
+
+```bash
+uname -a #显示所有
+uname -n #主机名称
+uname -v #内核版本
+```
+
+### *hostname
+
+```bash
+hostname #显示主机名称
+hostname -I #显示主机所有IP
+```
+
+### *du
+
+统计磁盘使用情况
+
+```bash
+du -h #统计当前路径下的文件磁盘使用情况 -h表示文件大小以人类可读的方式展示
+du -a #显示所有文件
+du -h test #指定目录
+du -s #当前目录总大小
+```
+
+### *date
+
+显示系统时间
+
+```bash
+date +%Y #2021
+date +%Y-%m-%d-%H:%M:%S #完整显示
+date +%Z #显示时区
+date +%R # %H:%M
+date +%F # %Y-%m-%d
+date '+%F %R' #%Y-%m-%d %H:%M:%S
+date +%N # 显示纳秒
+```
+
+### *watch
+
+监视命令的执行
+
+```bash
+watch -n 1 -d netstat -ant #监视网络 -n表示变化间隔1s -d表示高亮变化了的部分
+watch -n 1 -d cat a.txt #监视文件的变化
+```
+
+### which和whereis
+
+查找可执行命令或则文件的路径，在PATH路径下查找
+
+```bash
+which bash
+which git
+```
+
+查看路径以及man路径
+
+```bash
+whereis bash
+```
+
+### locate和updatedb
 
 TODO
 
+​    
 
+## 压缩与备份
+
+### **tar
+
+打包和压缩工具，可以仅仅打包，也可以压缩并打包
+
+```bash
+#z:gzip压缩 v:详细信息 f:指定压缩名字
+
+# c:创建一个新的tar包
+tar -czvf  a.tar.gz ./* #压缩当前文件夹下的所有文件 并且压缩包的名字为a.tar.gz
+du -h c-learn.tar.gz #压缩之后可以使用du命令对比大小
+
+# t:不解压查看压缩包内容
+tar -tzvf a.tar.gz
+
+# x:解压
+tar -xzvf a.tar.gz #默认解压到当前目录下
+tar -xzvf a.tar.gc -C /tmp/ #指定解压路径
+```
+
+### unzip
+
+解压zip文件
+
+```bash
+unzip -O cp936 'Redis 5设计与源码分析.zip' # -0是为了防止乱码
+```
+
+### scp
+
+ssh方式传输文件
+
+```bash
+scp ./a.pdf root@aliyun:/root/ #上传文件到远程服务器
+scp root@aliyun:/root/lyer-home/images ./images #从远程服务器中下载文件到本地
+```
+
+### **rsync
+
+文件同步工具，如果目标文件不存在则会自动创建
+
+同步本地文件
+
+```bash
+#也可用于本地两个文件同步 source文件夹带斜杠就是同步文件夹下面的文件
+# a:递归  v:详细
+# 没带斜线则会将目录本身复制到目录下
+
+#将data1目录下的文件全部同步到data2目录下
+rsync -av data1/ data2/
+#将data1复制到data2目录下
+rsync -av data1 data2/
+#以data1目录为准  两个目录完全一致 会将data2目录下的不一致的删除
+rsync -av data1/ --delete  data2/ #--delete让两个目录完全一致 不同的会被删除
+```
+
+同步远程文件
+
+```bash
+rsync -av 192.168.0.23:/data1/ data2/  #拉取
+rsync -av data1/ 192.168.0.23:/data2/  #推送
+```
 
 ​    
+
+## 用户管理及用户信息查询
+
+### 几个重要的文件
+
+```bash
+/etc/passwd #用户信息文件
+/etc/shadow #用户密码文件
+/etc/gshadow #组密码文件
+/etc/group #用户组文件
+/etc/login.defs #用户定义文件
+/etc/default/useradd #创建用户的默认配置文件
+/etc/skel #会将此目录下的文件复制到用户的家目录下
+/etc/sudoers #sudo文件
+```
+
+`/etc/passwd`
+
+```bash
+testuser:x:1001:1001:TmpUser:/home/testuser:/bin/sh
+```
+
+| 用户名   | 密码标识(都为x) | 用户ID | 用户组ID | 用户说明 | 用户家目录     | shell解释器 |
+| -------- | --------------- | ------ | -------- | -------- | -------------- | ----------- |
+| testuser | x               | 1001   | 1001     | TmpUser  | /home/testuser | /bin/sh     |
+
+`/etc/group`
+
+| 组名   | 口令 | 组标识号 | 组内用户列表 |      |      |      |
+| ------ | ---- | -------- | ------------ | ---- | ---- | ---- |
+| docker | x    | 134      | u1           | u2   | u3   |      |
+
+### useradd
+
+useradd如果不指定用户组的话默认会创建一个和用户名相同的用户组
+
+```bash
+useradd -m testuser #-m家目录如果不存在则自动创建
+useradd -s bash testuser #-s指定用户使用的sh类型
+useradd -g testgroup -u 100 testuser #-g指定用户组 -u指定UID
+useradd -e "2020-06-07" testuser #-e指定用户的过期时间
+useradd -c TempUser testuser #-c指定用户的简短注释
+```
+
+### userdel
+
+```bash
+userdel -r testuser #删除目录的同时删除其关联的文件
+userdel -f testuser #强制删除 即使用户已经登入
+```
+
+### *usermod
+
+修改用户，和useradd参数一样
+
+### groupadd和groupdel
+
+```bash
+groupadd testgroup
+groupadd -g 1002 testgroup
+groupdel testgroup #删除用户组
+```
+
+### *passwd
+
+```bash
+passwd #修改当前用户的密码
+passwd testuser #修改指定用户的密码
+echo "123456" | passwd --stdin testuser #一条设置密码
+
+#5天内不能更改密码
+#30天之后必须修改密码
+passwd -n 5 -x 30 testuser
+
+#账户过期前7天告诉用户
+#过期后60天禁止用户登入
+passwd -w 7 -i 60 testuser
+```
+
+### chage
+
+修改用户密码有效期
+
+### chpasswd
+
+批量更新用户密码
+
+### *su和sudo
+
+`su`切换用户 `sudo`根据`/etc/sudoers`文件借权代替执行
+
+```bash
+su root #切换到root用户
+sudo ls /etc
+```
+
+### *id
+
+```bash
+id #显示当前用户和用户组信息
+id testuser #指定用户名
+```
+
+### *w、who、users、whoami、last、lastb
+
+```bash
+#显示已经登入的用户
+w
+who
+users
+whoami #显示当前用户名
+last #显示历史登入列表
+lastb #显示登入失败记录
+lastlog
+```
+
+​    
+
+## ?磁盘与文件系统管理
+
+
+
+
+
+## ?进程管理
+
+### *ps
+
+```bash
+ps -e #显示所有进程
+ps -l #详细显示进程状况
+ps -f #显示UID PPID C 等详细栏位
+ps f #显示进程树结构
+```
+
+展示当前系统的所有进程
+
+```bash
+ps -ef #另外一种风格的进程信息
+ps -aux #显示BSD风格的进程信息
+```
+
+查找指定进程
+
+```bash
+ps -ef | grep ssh 
+```
+
+### *pstree
+
+显示某个进程的进程树
+
+```bash
+pstree 15835
+-a #显示进程完整信息
+-p #显示pid
+```
+
+### pgrep
+
+ps -ef和grep效果一样
+
+```bash
+pgrep docker #只显示pid
+pgrep docker -a #等同于 ps -ef | grep docker
+```
+
+### *kill
+
+```bash
+kill -l #列出所有信号
+kill -15 12322 #发送指定信号到进程
+```
+
+### killall
+
+通过进程名字终止进程，如果有多个子进程则需要执行多次
+
+```bash
+killall mysql
+```
+
+### *pkill
+
+通过进程名终止进程包括子进程，只需要执行一次
+
+```bash
+pkill mysql
+```
+
+### *top
+
+实时查看系统资源情况
+
+```bash
+top #默认按照CPU占用率排序
+top -c #显示命令路径
+top -d 1 #修改刷新间隔 top进入之后按s再进行修改也可
+top -H #显示线程  默认只显示进程
+top -n 5 #更新5次之后退出
+top -p 12355 #指定某个进程
+```
+
+### nice和renice
+
+忽略
+
+### *nohup
+
+ `no hang up`（不挂起），用于在系统后台不挂断地运行命令，退出终端不会影响程序的运行
+
+```bash
+nohup a.sh > /dev/null  2>&1 &
+```
+
+### **strace
+
+跟踪进程TODO
+
+### **ltrace
+
+跟踪进程使用了哪些系统调用TODO
+
+### **runlevel
+
+输出当前系统的运行级别
+
+```bash
+runlevel
+```
+
+### **init
+
+TODO
+
+### **service和systemctl
+
+管理系统服务(守护进程)
+
+**systemctl命令是service命令和chkconfig命令的集合和代替**
+
+```bash
+service docker status #systemctl status docker
+service docker restart
+service docker start
+service docker stop
+```
+
+​    
+
+## ?网络管理
+
+### *ifconfig
+
+```bash
+ifconfig #查看所有网卡信息
+ifconfig wlp0s20f3 #查看指定网卡信息
+ifconfig wlp0s20f3 up/down #开启/关闭网卡
+ifconfig wlp0s20f3 192.168.0.24/24 #为网卡分配IP 同时也指定了子网掩码
+ifconfig wlp0s20f3 192.168.0.24/24 up
+```
+
+### ifup和ifdown
+
+激活/关闭网卡，和`ifconfig up/down` 命令作用一样
+
+```bash
+ifup eth0
+ifdown eth0
+```
+
+### *route
+
+显示本机的静态路由表
+
+```bash
+route -n
+```
+
+### arp
+
+显示本机ARP缓存
+
+```bash
+arp -n #显示IP
+```
+
+### *ip
+
+TODO
+
+### **netstat
+
+```bash
+-a #显示所有
+-n #不解析IP为域名 只显示IP
+-t #TCP
+-u #UDP
+-p #显示进程名 PID
+netstat -an #显示所有连接信息
+netstat -ant
+netstat -anu
+netstat -antp
+
+netstat -i #显示本机的网络接口
+netstat -r #显示路由表
+```
+
+### **ss
+
+参数和`netstat`差不多
+
+```bash
+ss -an #所有
+ss -ntlp #TCP
+ss -antp #TCP
+ss -nulp #UDP
+ss -ntulp #TCP UDP正则监听的
+```
+
+### *ping
+
+```bash
+-c 2 #发送次数2
+-i 1 #发送间隔1s
+
+#发送3个包 每隔2s发送 包大小为1024字节
+ping -c 3 -i 2 -s 1024 google.com 
+```
+
+### traceroute
+
+### telnet
+
+### arping
+
+### nc
+
+### wget
+
+下载文件工具，支持FTP、HTTP
+
+```bash
+-q #静默模式 关闭下载日志输出
+-b #后台下载
+-O #指定下载文件名
+wget https://mirrors.tuna.tsinghua.gz
+wget -O a.tar https://mirrors.tuna.tsinghua.gz
+```
+
+   
+
+## ?Linux系统管理命令
+
+## ?系统内置命令
 
 ## 参考
 
 [https://github.com/xjh22222228/linux-manual#cp](https://github.com/xjh22222228/linux-manual#cp)
+
+[看完这篇Linux基本的操作就会了](https://mp.weixin.qq.com/s?__biz=MzI4Njg5MDA5NA==&mid=2247484231&idx=1&sn=4cf217a4d692a7aba804e5d96186b15b&chksm=ebd74246dca0cb5024de2f1d9f9e2ecb631e49752713c25bbe44f44856e919df5a973049c189#rd)
 
 《跟老男孩学Linux运维:核心命令系统实战》    
 
