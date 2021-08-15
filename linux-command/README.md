@@ -342,7 +342,11 @@ EOF
 cat -n a.txt  #输出行号(包括空行)
 cat -b a.txt #输出行号 (不包括空行)
 cat -s a.txt #如果有空行则将多个空行合并为1个
+cat a.txt b.txt > c.out #合并文件
+cat /dev/null > c.out #清空文件
+cat > a.txt #键盘输入到文件 ctrl+d结束
 cat a.txt | grep -v "^$" #过滤掉所有空行
+
 ```
 
 ### more
@@ -362,6 +366,13 @@ tail -f -s 10 a.txt #-s表示监控间隔为10s
 ### cut
 
 分割文本
+
+```bash
+-d #定义分割符  默认是空格
+-f #指定显示的列
+-c #以字符为单位切割
+-b #字节为单位切割
+```
 
 ```bash
 cut -d ' ' -f 1 #以空格为单位 并取第一列
@@ -397,6 +408,16 @@ sort -n #按数字排序 而不是ascii
 sort -r #倒序 (默认升序)
 sort -u #去除重复的行
 sort -t ',' -k2 #指定分割符号和按哪一列排序
+sort -f #不区分大小写
+sort -k <n> #从第n列开始排序
+sort -o <new-file> #将结果写入文件中 默认直接输出
+```
+
+```bash
+sort id.txt #默认按照逐个比较ascii排序
+sort a.txt b.txt > out.txt #排序并合并
+sort -k2 -n  id.txt #不指定t则默认是以空格为分隔符
+sort -t ':' -k2 -n  id.txt
 ```
 
 ### join
@@ -411,6 +432,7 @@ sort -t ',' -k2 #指定分割符号和按哪一列排序
 uniq -c #去除重复的行同时在每行开头记录重复的次数
 uniq -d #只显示重复的行
 uniq -u #只显示不重复的行
+uniq -c id.txt | sort -nk1 #和sort配合 按重复行排序
 ```
 
 ### *wc
@@ -568,6 +590,14 @@ date +%R # %H:%M
 date +%F # %Y-%m-%d
 date '+%F %R' #%Y-%m-%d %H:%M:%S
 date +%N # 显示纳秒
+```
+
+### cal
+
+```bash
+cal #显示当前月份的日历
+cal 2020 #显示2020年的日历
+cal 5 2020 #显示5月日历 可以查看星期几
 ```
 
 ### *watch
@@ -785,11 +815,9 @@ lastlog
 
 ## ?磁盘与文件系统管理
 
-
-
-
-
 ## ?进程管理
+
+进程信息都保存在`/proc`下，进程信息展示都是通过读取目录下的信息进行展示的
 
 ### *ps
 
@@ -811,6 +839,21 @@ ps -aux #显示BSD风格的进程信息
 
 ```bash
 ps -ef | grep ssh 
+```
+
+### *top
+
+实时查看系统资源情况
+
+```bash
+top #默认按照CPU占用率排序
+top -c #显示命令路径
+top -d 1 #修改刷新间隔1s top进入之后按s再进行修改也可
+top -n 5 #更新5次之后退出
+top -H #显示线程  默认只显示进程
+top -p 12355 #指定某个pid的进程
+按键1 查看单独CPU的信息
+按键s 修改更新时间
 ```
 
 ### *pstree
@@ -837,6 +880,7 @@ pgrep docker -a #等同于 ps -ef | grep docker
 ```bash
 kill -l #列出所有信号
 kill -15 12322 #发送指定信号到进程
+kill -9 1111 #强制终止
 ```
 
 ### killall
@@ -855,19 +899,6 @@ killall mysql
 pkill mysql
 ```
 
-### *top
-
-实时查看系统资源情况
-
-```bash
-top #默认按照CPU占用率排序
-top -c #显示命令路径
-top -d 1 #修改刷新间隔 top进入之后按s再进行修改也可
-top -H #显示线程  默认只显示进程
-top -n 5 #更新5次之后退出
-top -p 12355 #指定某个进程
-```
-
 ### nice和renice
 
 忽略
@@ -878,6 +909,22 @@ top -p 12355 #指定某个进程
 
 ```bash
 nohup a.sh > /dev/null  2>&1 &
+```
+
+### jobs fg bg & nohub 
+
+`&`  `jobs` `fg` `bg` `nohub`
+
+```bash
+./exe & #后台运行 但是日志还会打印在标准输出
+./exe > log.txt 2>&1 & #0:标准输入 1:标准输出 2:标准错误 2>&1是将标准出错重定向到标准输出 最终结果就是`标准输出`和`错误`都被重定向到`log.txt`中
+etcd > /dev/null  2>&1 & #后台运行 同时输出日志重定向到垃圾桶
+nohup etcd > /dev/null 2>&1 & #以守护进程方式运行 不会随着终端退出而退出
+jobs #查看后台运行中的进程
+
+#ctrl+z暂停任务 ctrl+c终止任务
+fg $1 #将后台任务放到前台执行
+bg $1 #将一个暂停的任务放在后台执行
 ```
 
 ### **strace
@@ -900,20 +947,25 @@ runlevel
 
 TODO
 
-### **service和systemctl
+### **systemctl
 
-管理系统服务(守护进程)
-
-**systemctl命令是service命令和chkconfig命令的集合和代替**
+管理系统服务(守护进程)，systemctl命令是service命令和chkconfig命令的集合和代替
 
 ```bash
-service docker status #systemctl status docker
-service docker restart
-service docker start
-service docker stop
+#系统服务都在此路径下:/usr/lib/systemd
+systemctl start docker
+systemctl stop docker 
+systemctl restart docker
+systemctl status docker
+#开启/关闭服务开机启动
+systemctl enable docker
+systemctl disable docker
+systemctl is-enabled docker
+
+systemctl list-unit-files #列出所有守护进程的信息
 ```
 
-​    
+​     
 
 ## ?网络管理
 
@@ -959,11 +1011,17 @@ TODO
 ### **netstat
 
 ```bash
--a #显示所有
--n #不解析IP为域名 只显示IP
--t #TCP
--u #UDP
--p #显示进程名 PID
+-a #显示所有socket
+-i #显示网卡
+-n #直接显示IP 不显示域名
+-u #只查看UDP
+-t #只查看TCP
+-s #查看统计信息
+-4 #只显示ipv4的套接字
+-6 #只显示ipv6的套接字
+-l #只查看监听中的socket
+-p #显示那个PID在监听
+
 netstat -an #显示所有连接信息
 netstat -ant
 netstat -anu
@@ -975,7 +1033,7 @@ netstat -r #显示路由表
 
 ### **ss
 
-参数和`netstat`差不多
+`ss`   是`Socket Statistics`的缩写，用来查看本机网络连接状况，和netstat一样，但是查询速度更快，用法和netstat一样
 
 ```bash
 ss -an #所有
@@ -983,6 +1041,7 @@ ss -ntlp #TCP
 ss -antp #TCP
 ss -nulp #UDP
 ss -ntulp #TCP UDP正则监听的
+ss -s #查看网络统计信息
 ```
 
 ### *ping
@@ -1015,9 +1074,74 @@ wget https://mirrors.tuna.tsinghua.gz
 wget -O a.tar https://mirrors.tuna.tsinghua.gz
 ```
 
-   
+### utw
+
+`utw` (centos下为`firewall`，ubuntu下为`utw`)    ubuntu下防火墙iptables工具
+
+默认的配置文件`/etc/default/ufw `
+
+```bash
+#注意 没有出现在iptables中的一律不允许访问
+ufw enable/disable
+ufw status
+
+#日志文件储存在 /var/logs/ufw
+ufw logging on/off #启用关闭日志
+ufw logging low|medium|high #设置日志级别
+
+ufw allow 1000 #开放1000短端口
+ufw deny 1000 #关闭1000端口 有数据包直接丢弃 无响应
+ufw reject 1000 #关闭1000端口 有数据包接受则返回一个拒接包
+ufw delete  reject 1000 #删除规则
+
+ufw allow ssh #允许指定端口号或则对应的服务名 这里和22一样
+ufw allow 80/tcp #还可以指定TCP或则UDP 只允许80端口上的TCP包
+ufw allow http/tcp
+
+ufw allow from 192.168.1.1 #允许指定IP连接到任何端口
+ufw allow from 192.168.1.0/24 #允许特定子网连接到任何端口
+ufw allow from 192.168.1.1 to any port 8080 #允许指定IP连接到8080端口 tcp/udp都可
+ufw allow from 192.168.1.1 to any port 8080 proto udp #指定协议UDP
+
+ufw status numbered #列出每个规则的序号 可以按照序号进行删除
+ufw delete 1
+```
+
+### dig
+
+`dig` 域名查询工具
+
+```bash
+dig @8.8.8.8 baidu.com #指定向8.8.8.8DNS服务器查询
+dig @8.8.8.8 -p 53 baidu.com #还可以指定查询服务器的端口 默认是53
+dig +trace baidu.com #显示整个DNS查询过程
+dig +trace +additional baidu.com #显示更详细的信息
+dig +short baidu.com #简化查询结果 只显示查询得到的IP
+dig +x 111.111.111.111 #反向解析
+dig ns baidu.com #查看这个域名的ns记录
+dig a baidu.com #查看A记录
+dig cname baidu.com
+```
+
+​      
 
 ## ?Linux系统管理命令
+
+开关机
+
+```bash
+#-h:halt的意思
+#shutdown会进行一些清理工作 然后调用init 0
+shutdown -h now #立刻关机
+shutdown -h 1 #1分钟之后 shutdown不加参数默认就是这个
+shutdown -h 11:00 #11点关机
+shutdown -r  now #立刻重启
+#重启
+reboot #init 6
+
+sync #将内存数据同步到磁盘 关机前都要执行这个命令
+last #查看关机和启动的日志
+```
 
 ## ?系统内置命令
 
@@ -1033,3 +1157,6 @@ wget -O a.tar https://mirrors.tuna.tsinghua.gz
 
 《Linux命令行与Shell脚本编程大全》
 
+[应该知道的LINUX技巧](https://coolshell.cn/articles/8883.html)
+
+[28个UNIX/LINUX的命令行神器](https://coolshell.cn/articles/7829.html)
