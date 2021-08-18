@@ -12,4 +12,5 @@
 | 循环                     | demo8  | while,for,for in          |
 | 函数                     | demo9  | $@,$0,$?                  |
 | 导入导出                 | demo10 | source,export             |
+| 模式扩展                 | demo11 | {},[],.*?             |
 
