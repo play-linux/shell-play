@@ -2,10 +2,7 @@
 
 #-----case------
 
-printf "输入[1,2,3,4,5]中的一个: "
-read -r code
-
-case $code in
+case $1 in
 1)
     echo "one"
     ;;
@@ -20,6 +17,18 @@ case $code in
     ;;
 5)
     echo "five"
+    ;;
+*)
+    echo "other"
+    ;;
+esac
+
+case $2 in
+[a-zA-Z])
+    echo "letter"
+    ;;
+[0-9])
+    echo "digit"
     ;;
 *)
     echo "other"
